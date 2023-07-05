@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>리다이렉트 결과(서버 상태여야 한다)</h1>
+
+    <script>
+      // 카카오 서버에서 인가 코드를 url주소에 담아서 보내준다
+      // 3. 인가코드 얻기
+
+      var urlSearch = new URLSearchParams(location.search);
+      //   console.log(urlSearch);
+      var value = urlSearch.get("code");
+      //   console.log(value);
+
+      // 4. 토큰 발급 받기
+      if (value != null) {
+        ajax();
+      }
+      function ajax() {
+        console.log(value);
+        var uri = "http://127.0.0.1:5500/11JS_API/index03.html";
+        var key = "44dd34e23bb1653c0cee89121b5de123";
+
+        var data =
+          "grant_type=authorization_code" +
+          "&client_id=" +
+          key +
+          "&redirect_uri=" +
+          uri +
+          "&code=" +
+          value; // 필수
+
+        // 토큰 요청 fetch post 방식
+        fetch("https://kauth.kakao.com/oauth/token", {
+          method: "post",
+          headers: {
+            "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+          }, // 폼형식
+          body: data,
+        })
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            // console.log(data);
+
+            // 브라우저 종료시에 모두 삭제
+            // 쿠키 & 세션 스토리지에 토큰 값
+            sessionStorage.setItem("kakao_access", data.access_token);
+
+            // 사용자 정보 REST API 호출
+            getUser(data.access_token);
+          });
+      }
+
+      // 5. 토큰기반으로 REST API 호출 처리
+      function getUser(token) {
+        fetch("https://kapi.kakao.com/v2/user/me", {
+          method: "post",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+          },
+        })
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            console.log(data);
+          });
+      }
+    </script>
+  </body>
+</html>
